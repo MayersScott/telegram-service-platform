@@ -13,3 +13,4 @@ build/
 .mypy_cache/
 coverage.xml
 htmlcov/
+.DS_Store
