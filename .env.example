@@ -1,0 +1,58 @@
+# =========================
+# Common
+# =========================
+ENV=dev
+LOG_LEVEL=INFO
+
+# =========================
+# Security (JWT for admin)
+# =========================
+# Generate: python -c "import secrets; print(secrets.token_urlsafe(48))"
+SECRET_KEY=change_me_to_random_secret
+
+# JWT token lifetime in minutes
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
+
+# =========================
+# Admin bootstrap
+# =========================
+# Admin user will be created on backend startup if not exists
+ADMIN_EMAIL=admin@example.com
+
+# IMPORTANT: bcrypt has 72 bytes limit for password input
+# Keep it <= 72 chars (ASCII) to avoid startup error
+ADMIN_PASSWORD=admin12345
+
+# =========================
+# Postgres (Docker)
+# =========================
+POSTGRES_DB=tsp
+POSTGRES_USER=tsp
+POSTGRES_PASSWORD=tsp
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+
+# Async SQLAlchemy URL (Docker network hostname = postgres)
+DATABASE_URL=postgresql+asyncpg://tsp:tsp@postgres:5432/tsp
+
+# =========================
+# Redis / Celery (Docker)
+# =========================
+# Redis main connection (optional, may be used later)
+REDIS_URL=redis://redis:6379/0
+
+# Celery broker & backend
+CELERY_BROKER_URL=redis://redis:6379/1
+CELERY_RESULT_BACKEND=redis://redis:6379/2
+
+# =========================
+# Telegram
+# =========================
+# Get it from @BotFather
+BOT_TOKEN=put_your_bot_token_here
+
+# =========================
+# Bot -> Backend base URL
+# =========================
+# In Docker Compose network bot can reach backend by service name "backend"
+API_BASE_URL=http://backend:8000
