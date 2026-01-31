@@ -64,10 +64,6 @@ curl -X PATCH http://localhost:8000/requests/1/status \
 
 ## Demo
 
-> Положи скриншоты в `docs/`:
-> - `docs/bot-demo.png`
-> - `docs/swagger.png`
-
 ![Bot demo](docs/bot-demo.png)
 ![Swagger](docs/swagger.png)
 
