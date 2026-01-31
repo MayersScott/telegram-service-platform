@@ -27,16 +27,8 @@ Python 3.12, FastAPI, SQLAlchemy (async), Alembic, PostgreSQL, Redis, Celery, Ai
 
 ## Demo
 
-Добавь скриншоты в папку `docs/`:
-- `docs/bot-demo.png` — пример работы бота
-- `docs/swagger.png` — Swagger UI
-
-После этого секция будет выглядеть так:
-
-```md
 ![Bot demo](docs/bot-demo.png)
 ![Swagger](docs/swagger.png)
-```
 
 ## Быстрый старт (Docker)
 
