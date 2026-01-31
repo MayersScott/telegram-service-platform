@@ -1,58 +1,135 @@
-# =========================
-# Common
-# =========================
-ENV=dev
-LOG_LEVEL=INFO
+# Telegram Service Platform
 
-# =========================
-# Security (JWT for admin)
-# =========================
-# Generate: python -c "import secrets; print(secrets.token_urlsafe(48))"
-SECRET_KEY=change_me_to_random_secret
+Платформа “бот + backend” для обработки заявок: Telegram-бот принимает заявки от пользователей, FastAPI хранит их в базе и отдаёт API, Celery отправляет уведомления о создании заявки и изменении статуса.
 
-# JWT token lifetime in minutes
-ACCESS_TOKEN_EXPIRE_MINUTES=1440
+## Возможности
 
-# =========================
-# Admin bootstrap
-# =========================
-# Admin user will be created on backend startup if not exists
-ADMIN_EMAIL=admin@example.com
+### Telegram-бот
+- `/start` — регистрация пользователя
+- `/new` — создание заявки (тема → описание)
+- `/my` — список заявок пользователя
 
-# IMPORTANT: bcrypt has 72 bytes limit for password input
-# Keep it <= 72 chars (ASCII) to avoid startup error
-ADMIN_PASSWORD=admin12345
+### Backend (FastAPI)
+- создание и просмотр заявок
+- админские endpoints: список заявок, смена статуса, статистика
+- JWT-авторизация для админки
+- Swagger/OpenAPI (`/docs`)
 
-# =========================
-# Postgres (Docker)
-# =========================
-POSTGRES_DB=tsp
-POSTGRES_USER=tsp
-POSTGRES_PASSWORD=tsp
-POSTGRES_HOST=postgres
-POSTGRES_PORT=5432
+### Очереди и фоновые задачи
+- Redis + Celery
+- уведомления в Telegram при:
+  - создании заявки
+  - изменении статуса
 
-# Async SQLAlchemy URL (Docker network hostname = postgres)
-DATABASE_URL=postgresql+asyncpg://tsp:tsp@postgres:5432/tsp
+## Стек
 
-# =========================
-# Redis / Celery (Docker)
-# =========================
-# Redis main connection (optional, may be used later)
-REDIS_URL=redis://redis:6379/0
+Python 3.12, FastAPI, SQLAlchemy (async), Alembic, PostgreSQL, Redis, Celery, Aiogram, Docker Compose.
 
-# Celery broker & backend
-CELERY_BROKER_URL=redis://redis:6379/1
-CELERY_RESULT_BACKEND=redis://redis:6379/2
+## Demo
 
-# =========================
-# Telegram
-# =========================
-# Get it from @BotFather
-BOT_TOKEN=put_your_bot_token_here
+Добавь скриншоты в папку `docs/`:
+- `docs/bot-demo.png` — пример работы бота
+- `docs/swagger.png` — Swagger UI
 
-# =========================
-# Bot -> Backend base URL
-# =========================
-# In Docker Compose network bot can reach backend by service name "backend"
+После этого секция будет выглядеть так:
+
+```md
+![Bot demo](docs/bot-demo.png)
+![Swagger](docs/swagger.png)
+```
+
+## Быстрый старт (Docker)
+
+1) Создай `.env`:
+```bash
+cp .env.example .env
+```
+
+2) Заполни обязательные переменные в `.env`:
+- `SECRET_KEY` — секрет для подписи JWT
+- `BOT_TOKEN` — токен Telegram бота (BotFather)
+- `ADMIN_EMAIL`, `ADMIN_PASSWORD` — учётка админа (создаётся при старте)
+
+Важно: `ADMIN_PASSWORD` должен быть не длиннее **72 символов** (ограничение bcrypt).
+
+3) Запуск:
+```bash
+docker compose up --build -d
+```
+
+Ссылки:
+- Swagger: `http://localhost:8000/docs`
+- Flower: `http://localhost:5555`
+
+## Как проверить работу
+
+1) В Telegram:
+- `/start`
+- `/new` → создать заявку
+- `/my` → убедиться, что заявка отображается
+
+2) В Swagger:
+- `POST /auth/login` → получить `access_token`
+- нажать `Authorize` → `Bearer <token>`
+- `GET /requests/` → увидеть заявки
+- `PATCH /requests/{id}/status` → поменять статус
+
+После смены статуса пользователю приходит уведомление в Telegram.
+
+## Статусы заявок
+
+- `new` — Новая
+- `in_progress` — В работе
+- `done` — Завершена
+- `cancelled` — Отменена
+
+## Переменные окружения
+
+Что обычно меняют вручную:
+- `SECRET_KEY`
+- `BOT_TOKEN`
+- `ADMIN_EMAIL`, `ADMIN_PASSWORD`
+
+Docker-значения по умолчанию подходят:
+- `DATABASE_URL=postgresql+asyncpg://tsp:tsp@postgres:5432/tsp`
+- `CELERY_BROKER_URL=redis://redis:6379/1`
+- `CELERY_RESULT_BACKEND=redis://redis:6379/2`
+- `API_BASE_URL=http://backend:8000` (важно: внутри Docker это не localhost)
+
+## Структура проекта
+
+```text
+backend/   FastAPI + DB + Celery
+bot/       Aiogram bot (клиент к backend API)
+```
+
+## Makefile (если используешь)
+
+```bash
+make up
+make down
+make ps
+make logs
+```
+
+## Troubleshooting
+
+### Бот не видит backend
+Проверь в `.env`:
+```env
 API_BASE_URL=http://backend:8000
+```
+
+Если запускаешь без Docker, тогда:
+```env
+API_BASE_URL=http://localhost:8000
+```
+
+### Celery пишет “Received unregistered task …”
+Проверь регистрацию задач (импорт `notifications` внутри `backend/app/tasks/__init__.py`).
+
+### Ошибка “password cannot be longer than 72 bytes”
+Сократи `ADMIN_PASSWORD` (≤72 символов) и перезапусти контейнеры.
+
+## License
+MIT (см. `LICENSE`)
